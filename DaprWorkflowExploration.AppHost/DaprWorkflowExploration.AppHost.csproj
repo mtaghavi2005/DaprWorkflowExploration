@@ -1,0 +1,16 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.1.2">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UserSecretsId>547a342b-2d5e-496a-9419-1ba8e52f42ee</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\DaprWorkflowExploration.ApiService\DaprWorkflowExploration.ApiService.csproj"/>
+        <ProjectReference Include="..\DaprWorkflowExploration.Web\DaprWorkflowExploration.Web.csproj"/>
+    </ItemGroup>
+
+</Project>

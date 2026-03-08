@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprWorkflowExploration.AppHost", "DaprWorkflowExploration.AppHost\DaprWorkflowExploration.AppHost.csproj", "{1A165B95-30BE-4CBA-86A3-EC74DBABCBA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprWorkflowExploration.ServiceDefaults", "DaprWorkflowExploration.ServiceDefaults\DaprWorkflowExploration.ServiceDefaults.csproj", "{1F7DCD17-D6DD-4796-B796-08323CC17349}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprWorkflowExploration.ApiService", "DaprWorkflowExploration.ApiService\DaprWorkflowExploration.ApiService.csproj", "{FCFB8AAB-1C11-48B9-B4BD-B1A602456B2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprWorkflowExploration.Web", "DaprWorkflowExploration.Web\DaprWorkflowExploration.Web.csproj", "{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1A165B95-30BE-4CBA-86A3-EC74DBABCBA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A165B95-30BE-4CBA-86A3-EC74DBABCBA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A165B95-30BE-4CBA-86A3-EC74DBABCBA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A165B95-30BE-4CBA-86A3-EC74DBABCBA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F7DCD17-D6DD-4796-B796-08323CC17349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F7DCD17-D6DD-4796-B796-08323CC17349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F7DCD17-D6DD-4796-B796-08323CC17349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F7DCD17-D6DD-4796-B796-08323CC17349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCFB8AAB-1C11-48B9-B4BD-B1A602456B2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCFB8AAB-1C11-48B9-B4BD-B1A602456B2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCFB8AAB-1C11-48B9-B4BD-B1A602456B2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCFB8AAB-1C11-48B9-B4BD-B1A602456B2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
