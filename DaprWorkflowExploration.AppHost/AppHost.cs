@@ -1,7 +1,14 @@
+using CommunityToolkit.Aspire.Hosting.Dapr;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var apiService = builder.AddProject<Projects.DaprWorkflowExploration_ApiService>("apiservice")
-    .WithHttpHealthCheck("/health");
+    .WithHttpHealthCheck("/health")
+    .WithDaprSidecar(new DaprSidecarOptions
+    {
+        AppId = "apiservice",
+        AppPort = 5497
+    });
 
 builder.AddProject<Projects.DaprWorkflowExploration_Web>("webfrontend")
     .WithExternalHttpEndpoints()

@@ -1,3 +1,5 @@
+using Dapr.Client;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
@@ -5,6 +7,7 @@ builder.AddServiceDefaults();
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
+builder.Services.AddDaprClient();
 
 var app = builder.Build();
 
@@ -29,6 +32,30 @@ app.MapGet("/weatherforecast", () =>
         return forecast;
     })
     .WithName("GetWeatherForecast");
+
+app.MapGet("/dapr/metadata", async (DaprClient daprClient, CancellationToken cancellationToken) =>
+    {
+        var metadata = await daprClient.GetMetadataAsync(cancellationToken);
+
+        return Results.Ok(new
+        {
+            metadata.Id,
+            Actors = metadata.Actors.Select(actor => new
+            {
+                actor.Type,
+                actor.Count
+            }),
+            Components = metadata.Components.Select(component => new
+            {
+                component.Name,
+                component.Type,
+                component.Version,
+                component.Capabilities
+            }),
+            metadata.Extended
+        });
+    })
+    .WithName("GetDaprMetadata");
 
 app.MapDefaultEndpoints();
 

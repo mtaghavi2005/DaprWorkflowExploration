@@ -9,8 +9,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\DaprWorkflowExploration.ApiService\DaprWorkflowExploration.ApiService.csproj"/>
-        <ProjectReference Include="..\DaprWorkflowExploration.Web\DaprWorkflowExploration.Web.csproj"/>
+        <ProjectReference Include="..\DaprWorkflowExploration.ApiService\DaprWorkflowExploration.ApiService.csproj" />
+        <ProjectReference Include="..\DaprWorkflowExploration.Web\DaprWorkflowExploration.Web.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Aspire.Hosting.Dapr" Version="13.0.0" />
     </ItemGroup>
 
 </Project>
