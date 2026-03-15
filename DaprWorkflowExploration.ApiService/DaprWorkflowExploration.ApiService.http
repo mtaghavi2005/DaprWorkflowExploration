@@ -1,6 +1,19 @@
 @ApiService_HostAddress = http://localhost:5497
 
-GET {{ApiService_HostAddress}}/weatherforecast/
+GET {{ApiService_HostAddress}}/store/store-1
 Accept: application/json
+
+###
+
+POST {{ApiService_HostAddress}}/store
+Content-Type: application/json
+
+{
+  "id": "store-1",
+  "name": "Coffee Beans",
+  "description": "Local sample record stored through Dapr state.",
+  "price": 14.99,
+  "quantity": 24
+}
 
 ###

@@ -1,0 +1,11 @@
+@page "/store"
+@inject NavigationManager Navigation
+
+<PageTitle>Store</PageTitle>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/store/list", replace: true);
+    }
+}

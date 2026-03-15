@@ -1,0 +1,30 @@
+@namespace DaprWorkflowExploration.Web.Components.Pages.StorePages
+@page "/store/create"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject StoreApiClient StoreApi
+
+<PageTitle>Create Store</PageTitle>
+
+<h1>Create Store</h1>
+
+<p>Add a new store entry and save it to the Dapr state store.</p>
+
+<StoreForm Store="store" SubmitLabel="Create" FormName="store-create" OnValidSubmit="SaveAsync" />
+
+@if (!string.IsNullOrWhiteSpace(statusMessage))
+{
+    <p class="mt-3">@statusMessage</p>
+}
+
+@code {
+    private readonly StoreInfo store = new();
+    private string? statusMessage;
+
+    private async Task SaveAsync()
+    {
+        await StoreApi.SaveStoreAsync(store);
+        statusMessage = $"Created '{store.Name}'.";
+        Navigation.NavigateTo($"/store/edit/{Uri.EscapeDataString(store.Id)}");
+    }
+}

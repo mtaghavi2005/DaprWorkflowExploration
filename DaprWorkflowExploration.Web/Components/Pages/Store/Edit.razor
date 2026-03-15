@@ -1,0 +1,49 @@
+@namespace DaprWorkflowExploration.Web.Components.Pages.StorePages
+@page "/store/edit/{Id}"
+@rendermode InteractiveServer
+@inject StoreApiClient StoreApi
+
+<PageTitle>Edit Store</PageTitle>
+
+<h1>Edit Store</h1>
+
+<p>Update an existing store entry and persist the changes through the Dapr-enabled API service.</p>
+
+@if (store is null)
+{
+    <p>Loading store...</p>
+}
+else
+{
+    <StoreForm Store="store" SubmitLabel="Save" DisableId="true" FormName="store-edit" OnValidSubmit="SaveAsync" />
+}
+
+@if (!string.IsNullOrWhiteSpace(statusMessage))
+{
+    <p class="mt-3">@statusMessage</p>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private StoreInfo? store;
+    private string? statusMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        store = await StoreApi.GetStoreAsync(Id);
+        statusMessage = store is null ? $"No saved store found for '{Id}'." : null;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (store is null)
+        {
+            return;
+        }
+
+        await StoreApi.SaveStoreAsync(store);
+        statusMessage = $"Saved '{store.Name}' to Dapr state.";
+    }
+}

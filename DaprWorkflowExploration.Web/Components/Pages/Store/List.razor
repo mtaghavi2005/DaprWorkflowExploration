@@ -1,0 +1,60 @@
+@namespace DaprWorkflowExploration.Web.Components.Pages.StorePages
+@page "/store/list"
+@inject StoreApiClient StoreApi
+
+<PageTitle>Stores</PageTitle>
+
+<h1>Stores</h1>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="mb-0">Review all stores, edit an existing entry, or create a new one.</p>
+    <a class="btn btn-primary" href="/store/create">Create store</a>
+</div>
+
+@if (stores is null)
+{
+    <p>Loading stores...</p>
+}
+else if (stores.Count == 0)
+{
+    <div class="alert alert-info">No stores have been created yet.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Name</th>
+            <th scope="col">Description</th>
+            <th scope="col">Price</th>
+            <th scope="col">Quantity</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var store in stores)
+        {
+            <tr>
+                <td>@store.Id</td>
+                <td>@store.Name</td>
+                <td>@store.Description</td>
+                <td>@store.Price</td>
+                <td>@store.Quantity</td>
+                <td class="text-end">
+                    <a class="btn btn-outline-primary btn-sm" href="@($"/store/edit/{Uri.EscapeDataString(store.Id)}")">Edit</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<StoreInfo>? stores;
+
+    protected override async Task OnInitializedAsync()
+    {
+        stores = await StoreApi.GetStoresAsync();
+    }
+}

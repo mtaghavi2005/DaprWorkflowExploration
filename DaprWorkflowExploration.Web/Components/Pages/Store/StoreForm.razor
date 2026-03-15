@@ -1,0 +1,52 @@
+@namespace DaprWorkflowExploration.Web.Components.Pages.StorePages
+<EditForm Model="Store" OnValidSubmit="OnValidSubmit" FormName="@FormName">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label" for="store-id">Id</label>
+        <InputText id="store-id" class="form-control" @bind-Value="Store.Id" disabled="@DisableId" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="store-name">Name</label>
+        <InputText id="store-name" class="form-control" @bind-Value="Store.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="store-description">Description</label>
+        <InputText id="store-description" class="form-control" @bind-Value="Store.Description" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="store-price">Price</label>
+        <InputNumber id="store-price" class="form-control" @bind-Value="Store.Price" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="store-quantity">Quantity</label>
+        <InputNumber id="store-quantity" class="form-control" @bind-Value="Store.Quantity" />
+    </div>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">@SubmitLabel</button>
+        <a class="btn btn-outline-secondary" href="/store/list">Back to list</a>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public required StoreInfo Store { get; set; }
+
+    [Parameter, EditorRequired]
+    public required EventCallback OnValidSubmit { get; set; }
+
+    [Parameter]
+    public string SubmitLabel { get; set; } = "Save";
+
+    [Parameter]
+    public bool DisableId { get; set; }
+
+    [Parameter]
+    public string FormName { get; set; } = "store-form";
+}

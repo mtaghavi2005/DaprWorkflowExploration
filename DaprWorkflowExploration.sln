@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprWorkflowExploration.Api
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprWorkflowExploration.Web", "DaprWorkflowExploration.Web\DaprWorkflowExploration.Web.csproj", "{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapr.AspNetCore", "..\..\Github\Dapr\dotnet-sdk\src\Dapr.AspNetCore\Dapr.AspNetCore.csproj", "{1EC2E9DA-C22D-4046-B21F-4C87BF8CF2A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F1B4AA5-EA00-4882-AC3E-36418E3CB004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EC2E9DA-C22D-4046-B21F-4C87BF8CF2A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EC2E9DA-C22D-4046-B21F-4C87BF8CF2A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EC2E9DA-C22D-4046-B21F-4C87BF8CF2A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EC2E9DA-C22D-4046-B21F-4C87BF8CF2A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
