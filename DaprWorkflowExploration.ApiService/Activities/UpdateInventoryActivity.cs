@@ -9,14 +9,21 @@ internal sealed partial class UpdateInventoryActivity(ILogger<UpdateInventoryAct
 
     public override async Task<object?> RunAsync(WorkflowActivityContext context, PaymentRequest req)
     {
-        LogCheckingInventory(logger, req.RequestId, req.ItemBeingPurchased, req.Amount);
+        LogCheckingInventory(logger, req.RequestId, req.ItemBeingPurchased, req.Quantity);
 
         // Simulate slow processing
         await Task.Delay(TimeSpan.FromSeconds(5));
 
         // Determine if there are enough Items for purchase
-        var (original, _) = await daprClient.GetStateAndETagAsync<OrderPayload>(StoreName, req.ItemBeingPurchased);
-        var newQuantity = original.Quantity - req.Amount;
+        var (original, _) = await daprClient.GetStateAndETagAsync<StoreInfo>(StoreName, req.StoreId);
+
+        if (original is null)
+        {
+            LogInsufficientInventory(logger, req.RequestId);
+            throw new InvalidOperationException();
+        }
+
+        var newQuantity = original.Quantity - req.Quantity;
             
         if (newQuantity < 0)
         {
@@ -24,8 +31,7 @@ internal sealed partial class UpdateInventoryActivity(ILogger<UpdateInventoryAct
             throw new InvalidOperationException();
         }
 
-        // Update the statestore with the new amount of paper clips
-        await daprClient.SaveStateAsync(StoreName, req.ItemBeingPurchased,  new OrderPayload(Name: req.ItemBeingPurchased, TotalCost: req.Currency, Quantity: newQuantity));
+        await daprClient.SaveStateAsync(StoreName, req.StoreId, original with { Quantity = newQuantity });
         LogUpdatedInventory(logger, newQuantity, original.Name);
 
         return null;

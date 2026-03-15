@@ -35,7 +35,72 @@ var app = builder.Build();
 app.UseExceptionHandler();
 
 
-app.MapPost("/order/process", (OrderPayload orderPayload) => { });
+app.MapPost("/order/process",
+        async ([FromBody] OrderRequest orderRequest, DaprClient daprClient, DaprWorkflowClient workflowClient, CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(orderRequest.StoreId))
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["StoreId"] = ["Store selection is required."]
+                });
+            }
+
+            if (orderRequest.Quantity <= 0)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["Quantity"] = ["Quantity must be greater than zero."]
+                });
+            }
+
+            var storeInfo = await daprClient.GetStateAsync<StoreInfo?>(storeName, orderRequest.StoreId, cancellationToken: cancellationToken);
+
+            if (storeInfo is null)
+            {
+                return Results.NotFound(new { Message = $"Store '{orderRequest.StoreId}' was not found." });
+            }
+
+            var workflowPayload = new OrderPayload(
+                StoreId: storeInfo.Id,
+                StoreName: storeInfo.Name,
+                UnitPrice: storeInfo.Price,
+                TotalCost: storeInfo.Price * orderRequest.Quantity,
+                Quantity: orderRequest.Quantity);
+
+            var workflowInstanceId = await workflowClient.ScheduleNewWorkflowAsync(
+                nameof(OrderProcessingWorkflow),
+                instanceId: null,
+                input: workflowPayload,
+                startTime: null,
+                cancellation: cancellationToken);
+
+            return Results.Accepted(
+                $"/order/process/{workflowInstanceId}",
+                new OrderSubmissionResponse(workflowInstanceId, storeInfo.Id, storeInfo.Name, orderRequest.Quantity, workflowPayload.TotalCost));
+        })
+    .WithName("ProcessStoreOrder");
+
+app.MapGet("/order/process/{workflowInstanceId}",
+        async (string workflowInstanceId, DaprWorkflowClient workflowClient, CancellationToken cancellationToken) =>
+        {
+            var workflowState = await workflowClient.GetWorkflowStateAsync(workflowInstanceId, cancellation: cancellationToken);
+
+            if (workflowState is null || !workflowState.Exists)
+            {
+                return Results.NotFound(new { Message = $"Workflow '{workflowInstanceId}' was not found." });
+            }
+
+            var result = workflowState.ReadOutputAs<OrderResult>();
+
+            return Results.Ok(new OrderStatusResponse(
+                WorkflowInstanceId: workflowInstanceId,
+                RuntimeStatus: workflowState.RuntimeStatus.ToString(),
+                IsCompleted: workflowState.IsWorkflowCompleted,
+                Processed: result?.Processed,
+                Message: result?.Message));
+        })
+    .WithName("GetOrderStatus");
 
 app.MapGet("/store/{id}", async (string id, DaprClient daprClient, CancellationToken cancellationToken) =>
     {

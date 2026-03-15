@@ -12,11 +12,11 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
 
         // Notify the user that an order has come through
         await context.CallActivityAsync(nameof(NotifyActivity),
-            new Notification($"Received order {orderId} for {order.Quantity} {order.Name} at ${order.TotalCost}"));
-        LogOrderReceived(logger, orderId, order.Quantity, order.Name, order.TotalCost);
+            new Notification($"Received order {orderId} for {order.Quantity} {order.StoreName} at ${order.TotalCost}"));
+        LogOrderReceived(logger, orderId, order.Quantity, order.StoreName, order.TotalCost);
 
         // Determine if there is enough of the item available for purchase by checking the inventory
-        var inventoryRequest = new InventoryRequest(RequestId: orderId, order.Name, order.Quantity);
+        var inventoryRequest = new InventoryRequest(RequestId: orderId, order.StoreId, order.Quantity);
         var result = await context.CallActivityAsync<InventoryResult>(
             nameof(VerifyInventoryActivity), inventoryRequest);
         LogCheckInventory(logger, inventoryRequest);
@@ -26,15 +26,15 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
         {
             // End the workflow here since we don't have sufficient inventory
             await context.CallActivityAsync(nameof(NotifyActivity),
-                new Notification($"Insufficient inventory for {order.Name}"));
-            LogInsufficientInventory(logger, order.Name);
-            return new OrderResult(Processed: false);
+                new Notification($"Insufficient inventory for {order.StoreName}"));
+            LogInsufficientInventory(logger, order.StoreName);
+            return new OrderResult(Processed: false, Message: $"Insufficient inventory for {order.StoreName}.");
         }
 
-        if (order.TotalCost > 5000)
+        if (order.TotalCost > 5000m)
         {
             await context.CallActivityAsync(nameof(RequestApprovalActivity),
-                new ApprovalRequest(orderId, order.Name, order.Quantity, order.TotalCost));
+                new ApprovalRequest(orderId, order.StoreName, order.Quantity, order.TotalCost));
 
             var approvalResponse = await context.WaitForExternalEventAsync<ApprovalResponse>(
                 eventName: "ApprovalEvent",
@@ -44,19 +44,19 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
                 await context.CallActivityAsync(nameof(NotifyActivity),
                     new Notification($"Order {orderId} was not approved"));
                 LogOrderNotApproved(logger, orderId);
-                return new OrderResult(Processed: false);
+                return new OrderResult(Processed: false, Message: $"Order {orderId} was not approved.");
             }
         }
 
         // There is enough inventory available so the user can purchase the item(s). Process their payment
-        var processPaymentRequest = new PaymentRequest(RequestId: orderId, order.Name, order.Quantity, order.TotalCost);
-        await context.CallActivityAsync(nameof(ProcessPaymentActivity),processPaymentRequest);
+        var processPaymentRequest = new PaymentRequest(orderId, order.StoreId, order.StoreName, order.Quantity, order.TotalCost);
+        await context.CallActivityAsync(nameof(ProcessPaymentActivity), processPaymentRequest);
         LogPaymentProcessing(logger, processPaymentRequest);
 
         try
         {
             // Update the available inventory
-            var paymentRequest = new PaymentRequest(RequestId: orderId, order.Name, order.Quantity, order.TotalCost); 
+            var paymentRequest = new PaymentRequest(orderId, order.StoreId, order.StoreName, order.Quantity, order.TotalCost);
             await context.CallActivityAsync(nameof(UpdateInventoryActivity), paymentRequest);
             LogInventoryUpdate(logger, paymentRequest);
         }
@@ -66,7 +66,7 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
             await context.CallActivityAsync(nameof(NotifyActivity),
                 new Notification($"Order {orderId} Failed! You are now getting a refund"));
             LogRefund(logger, orderId);
-            return new OrderResult(Processed: false);
+            return new OrderResult(Processed: false, Message: $"Order {orderId} failed after payment and is being refunded.");
         }
 
         // Let them know their payment was processed
@@ -74,11 +74,11 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
         LogSuccessfulOrder(logger, orderId);
 
         // End the workflow with a success result
-        return new OrderResult(Processed: true);
+        return new OrderResult(Processed: true, Message: $"Order {orderId} for {order.StoreName} has completed.");
     }
 
     [LoggerMessage(LogLevel.Information, "Received request ID '{request}' for {quantity} {name} at ${totalCost}")]
-    static partial void LogOrderReceived(ILogger logger, string request, int quantity, string name, double totalCost);
+    static partial void LogOrderReceived(ILogger logger, string request, int quantity, string name, decimal totalCost);
     
     [LoggerMessage(LogLevel.Information, "Checked inventory for request ID '{request}'")]
     static partial void LogCheckInventory(ILogger logger, InventoryRequest request);

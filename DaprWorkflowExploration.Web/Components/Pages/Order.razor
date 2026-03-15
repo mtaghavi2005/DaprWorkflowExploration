@@ -1,0 +1,108 @@
+@page "/order"
+@rendermode InteractiveServer
+@inject OrderApiClient OrderApi
+@inject StoreApiClient StoreApi
+
+<PageTitle>Order</PageTitle>
+
+<h1>Create Order</h1>
+
+<p>Select a store item and submit an order. The form calls the order API, which starts the Dapr workflow.</p>
+
+@if (stores is null)
+{
+    <p>Loading available stores...</p>
+}
+else if (stores.Count == 0)
+{
+    <div class="alert alert-info">
+        No stores are available yet. Create a store first, then place an order.
+    </div>
+}
+else
+{
+    <EditForm Model="orderRequest" OnValidSubmit="SubmitAsync" FormName="order-create">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label" for="order-store">Store</label>
+            <InputSelect id="order-store" class="form-select" @bind-Value="orderRequest.StoreId">
+                <option value="">Select a store</option>
+                @foreach (var store in stores)
+                {
+                    <option value="@store.Id">@store.Name (@store.Id)</option>
+                }
+            </InputSelect>
+        </div>
+
+        @if (selectedStore is not null)
+        {
+            <div class="alert alert-secondary">
+                <div><strong>Description:</strong> @selectedStore.Description</div>
+                <div><strong>Unit price:</strong> @selectedStore.Price</div>
+                <div><strong>Available quantity:</strong> @selectedStore.Quantity</div>
+            </div>
+        }
+
+        <div class="mb-3">
+            <label class="form-label" for="order-quantity">Quantity</label>
+            <InputNumber id="order-quantity" class="form-control" @bind-Value="orderRequest.Quantity" />
+        </div>
+
+        @if (selectedStore is not null)
+        {
+            <p><strong>Estimated total:</strong> @(selectedStore.Price * orderRequest.Quantity)</p>
+        }
+
+        <button class="btn btn-primary" type="submit">Submit order</button>
+    </EditForm>
+}
+
+@if (!string.IsNullOrWhiteSpace(statusMessage))
+{
+    <div class="alert alert-info mt-3">@statusMessage</div>
+}
+
+@if (submission is not null)
+{
+    <div class="alert alert-success mt-3">
+        <div><strong>Workflow instance:</strong> @submission.WorkflowInstanceId</div>
+        <div><strong>Store:</strong> @submission.StoreName</div>
+        <div><strong>Quantity:</strong> @submission.Quantity</div>
+        <div><strong>Total cost:</strong> @submission.TotalCost</div>
+        @if (workflowStatus is not null)
+        {
+            <div><strong>Workflow status:</strong> @workflowStatus.RuntimeStatus</div>
+            @if (!string.IsNullOrWhiteSpace(workflowStatus.Message))
+            {
+                <div><strong>Workflow message:</strong> @workflowStatus.Message</div>
+            }
+        }
+    </div>
+}
+
+@code {
+    private readonly OrderRequest orderRequest = new();
+    private IReadOnlyList<StoreInfo>? stores;
+    private OrderSubmissionResponse? submission;
+    private OrderStatusResponse? workflowStatus;
+    private string? statusMessage;
+
+    private StoreInfo? selectedStore => stores?.FirstOrDefault(store => store.Id == orderRequest.StoreId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        stores = await StoreApi.GetStoresAsync();
+    }
+
+    private async Task SubmitAsync()
+    {
+        statusMessage = null;
+        workflowStatus = null;
+
+        submission = await OrderApi.SubmitOrderAsync(orderRequest);
+        statusMessage = $"Order submitted. Workflow '{submission.WorkflowInstanceId}' has been created.";
+        workflowStatus = await OrderApi.GetOrderStatusAsync(submission.WorkflowInstanceId);
+    }
+}

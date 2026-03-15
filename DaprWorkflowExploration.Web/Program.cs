@@ -14,6 +14,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddOutputCache();
 builder.Services.AddDaprClient();
 builder.Services.AddScoped<StoreApiClient>();
+builder.Services.AddScoped<OrderApiClient>();
 
 var app = builder.Build();
 

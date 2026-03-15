@@ -9,32 +9,32 @@ internal sealed partial class VerifyInventoryActivity(ILogger<VerifyInventoryAct
 
     public override async Task<InventoryResult> RunAsync(WorkflowActivityContext context, InventoryRequest req)
     {
-        LogVerifyInventory(logger, req.RequestId, req.Quantity, req.ItemName);
+        LogVerifyInventory(logger, req.RequestId, req.Quantity, req.StoreId);
 
         // Ensure that the store has items
-        var (orderResult, _) = await daprClient.GetStateAndETagAsync<OrderPayload>(StoreName, req.ItemName);
+        var (storeInfo, _) = await daprClient.GetStateAndETagAsync<StoreInfo>(StoreName, req.StoreId);
 
         // Catch for the case where the statestore isn't setup
-        if (orderResult is null)
+        if (storeInfo is null)
         {
             // Not enough items.
-            LogStateNotFound(logger, req.RequestId, req.ItemName);
+            LogStateNotFound(logger, req.RequestId, req.StoreId);
             return new InventoryResult(false, null);
         }
 
         // See if there are enough items to purchase
-        if (orderResult.Quantity >= req.Quantity)
+        if (storeInfo.Quantity >= req.Quantity)
         {
             // Simulate slow processing
             await Task.Delay(TimeSpan.FromSeconds(2));
 
-            LogSufficientInventory(logger, orderResult.Quantity, req.ItemName);
-            return new InventoryResult(true, orderResult);
+            LogSufficientInventory(logger, storeInfo.Quantity, storeInfo.Name);
+            return new InventoryResult(true, storeInfo);
         }
 
         // Not enough items.
-        LogInsufficientInventory(logger, req.RequestId, req.ItemName);
-        return new InventoryResult(false, orderResult);
+        LogInsufficientInventory(logger, req.RequestId, storeInfo.Name);
+        return new InventoryResult(false, storeInfo);
     }
 
     [LoggerMessage(LogLevel.Information, "Reserving inventory for order request ID '{requestId}' of {quantity} {name}")]

@@ -6,7 +6,7 @@ internal sealed partial class ProcessPaymentActivity(ILogger<ProcessPaymentActiv
 {
     public override async Task<object?> RunAsync(WorkflowActivityContext context, PaymentRequest req)
     {
-        LogPaymentProcessing(logger, req.RequestId, req.Amount, req.ItemBeingPurchased, req.Currency);
+        LogPaymentProcessing(logger, req.RequestId, req.Quantity, req.ItemBeingPurchased, req.TotalCost);
 
         // Simulate slow processing
         await Task.Delay(TimeSpan.FromSeconds(7));
@@ -15,8 +15,8 @@ internal sealed partial class ProcessPaymentActivity(ILogger<ProcessPaymentActiv
         return null;
     }
 
-    [LoggerMessage(LogLevel.Information, "Processing payment: request ID '{requestId}' for {amount} {itemBeingPurchased} at ${currency}")]
-    static partial void LogPaymentProcessing(ILogger logger, string requestId, int amount, string itemBeingPurchased, double currency);
+    [LoggerMessage(LogLevel.Information, "Processing payment: request ID '{requestId}' for {quantity} {itemBeingPurchased} at ${totalCost}")]
+    static partial void LogPaymentProcessing(ILogger logger, string requestId, int quantity, string itemBeingPurchased, decimal totalCost);
 
     [LoggerMessage(LogLevel.Information, "Payment for request ID '{requestId}' processed successfully")]
     static partial void LogSuccessfulPayment(ILogger logger, string requestId);
