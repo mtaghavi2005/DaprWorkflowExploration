@@ -51,7 +51,19 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
         // There is enough inventory available so the user can purchase the item(s). Process their payment
         var processPaymentRequest = new PaymentRequest(orderId, order.StoreId, order.StoreName, order.Quantity, order.TotalCost);
         await context.CallActivityAsync(nameof(ProcessPaymentActivity), processPaymentRequest);
-        LogPaymentProcessing(logger, processPaymentRequest);
+        LogPaymentRequested(logger, processPaymentRequest);
+
+        var paymentResult = await context.WaitForExternalEventAsync<PaymentProcessedMessage>(
+            eventName: "PaymentProcessedEvent",
+            timeout: TimeSpan.FromSeconds(60));
+
+        if (!paymentResult.Processed)
+        {
+            await context.CallActivityAsync(nameof(NotifyActivity),
+                new Notification(paymentResult.Message));
+            LogPaymentRejected(logger, orderId);
+            return new OrderResult(Processed: false, Message: paymentResult.Message);
+        }
 
         try
         {
@@ -89,8 +101,11 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
     [LoggerMessage(LogLevel.Information, "Order {orderName} was not approved")]
     static partial void LogOrderNotApproved(ILogger logger, string orderName);
 
-    [LoggerMessage(LogLevel.Information, "Processed payment request as there's sufficient inventory to proceed: {request}")]
-    static partial void LogPaymentProcessing(ILogger logger, PaymentRequest request);
+    [LoggerMessage(LogLevel.Information, "Published payment request for async processing: {request}")]
+    static partial void LogPaymentRequested(ILogger logger, PaymentRequest request);
+
+    [LoggerMessage(LogLevel.Information, "Order {orderId} payment was rejected")]
+    static partial void LogPaymentRejected(ILogger logger, string orderId);
 
     [LoggerMessage(LogLevel.Information, "Updating available inventory for {request}")]
     static partial void LogInventoryUpdate(ILogger logger, PaymentRequest request);

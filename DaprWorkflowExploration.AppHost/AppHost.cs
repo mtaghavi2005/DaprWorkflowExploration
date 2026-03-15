@@ -8,6 +8,20 @@ var stateStore = builder.AddDaprStateStore("statestore", new DaprComponentOption
     LocalPath = Path.Combine(localDaprComponentsPath, "statestore.yaml")
 });
 
+var paymentProcessingService = builder.AddProject<Projects.DaprWorkflowExploration_AccountingService>("accountingservice")
+    .WithHttpHealthCheck("/health")
+    .WithDaprSidecar(sidecar =>
+    {
+        sidecar
+            .WithOptions(new DaprSidecarOptions
+            {
+                AppId = "accountingservice",
+                AppPort = 5499,
+                DaprHttpPort = 58199,
+                ResourcesPaths = [localDaprComponentsPath]
+            });
+    });
+
 var apiService = builder.AddProject<Projects.DaprWorkflowExploration_ApiService>("apiservice")
     .WithHttpHealthCheck("/health")
     .WithDaprSidecar(sidecar =>
@@ -21,7 +35,8 @@ var apiService = builder.AddProject<Projects.DaprWorkflowExploration_ApiService>
                 ResourcesPaths = [localDaprComponentsPath]
             })
             .WithReference(stateStore);
-    });
+    })
+    .WaitFor(paymentProcessingService);
 
 builder.AddProject<Projects.DaprWorkflowExploration_Web>("webfrontend")
     .WithExternalHttpEndpoints()
@@ -33,6 +48,7 @@ builder.AddProject<Projects.DaprWorkflowExploration_Web>("webfrontend")
         DaprHttpPort = 58198,
     })
     .WithReference(apiService)
-    .WaitFor(apiService);
+    .WaitFor(apiService)
+    .WaitFor(paymentProcessingService);
 
 builder.Build().Run();

@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\DaprWorkflowExploration.ApiService\DaprWorkflowExploration.ApiService.csproj" />
+        <ProjectReference Include="..\DaprWorkflowExploration.AccountingService\DaprWorkflowExploration.AccountingService.csproj" />
         <ProjectReference Include="..\DaprWorkflowExploration.Web\DaprWorkflowExploration.Web.csproj" />
     </ItemGroup>
 

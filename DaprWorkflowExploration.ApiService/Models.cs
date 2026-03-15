@@ -5,6 +5,8 @@ public sealed record StoreInfo(string Id, string Name, string Description, decim
 public sealed record OrderRequest(string StoreId, int Quantity);
 public sealed record OrderSubmissionResponse(string WorkflowInstanceId, string StoreId, string StoreName, int Quantity, decimal TotalCost);
 public sealed record OrderStatusResponse(string WorkflowInstanceId, string RuntimeStatus, bool IsCompleted, bool? Processed, string? Message);
+public sealed record PaymentRequestedMessage(string WorkflowInstanceId, string StoreId, string StoreName, int Quantity, decimal TotalCost);
+public sealed record PaymentProcessedMessage(string WorkflowInstanceId, string StoreId, string StoreName, int Quantity, decimal TotalCost, bool Processed, string Message);
 
 internal sealed record OrderPayload(string StoreId, string StoreName, decimal UnitPrice, decimal TotalCost, int Quantity = 1);
 internal sealed record InventoryRequest(string RequestId, string StoreId, int Quantity);

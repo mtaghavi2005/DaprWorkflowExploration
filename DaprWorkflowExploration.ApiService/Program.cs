@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using Dapr.Client;
+using Dapr;
 using Dapr.Workflow;
 using DaprWorkflowExploration.ApiService;
 using DaprWorkflowExploration.ApiService.Activities;
@@ -33,6 +35,9 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+app.UseCloudEvents();
+
+app.MapSubscribeHandler();
 
 
 app.MapPost("/order/process",
@@ -101,6 +106,38 @@ app.MapGet("/order/process/{workflowInstanceId}",
                 Message: result?.Message));
         })
     .WithName("GetOrderStatus");
+
+app.MapPost("/payment-results",
+        [Topic("pubsub", "payment-results")] async ([FromBody] PaymentProcessedMessage paymentProcessedMessage,
+            DaprWorkflowClient workflowClient,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            logger.LogInformation(
+                "payment-results subscriber received workflow '{WorkflowInstanceId}' Activity.Current traceId={TraceId} spanId={SpanId} parentSpanId={ParentSpanId} activityId={ActivityId}",
+                paymentProcessedMessage.WorkflowInstanceId,
+                Activity.Current?.TraceId.ToString(),
+                Activity.Current?.SpanId.ToString(),
+                Activity.Current?.ParentSpanId.ToString(),
+                Activity.Current?.Id);
+
+            await workflowClient.RaiseEventAsync(
+                paymentProcessedMessage.WorkflowInstanceId,
+                "PaymentProcessedEvent",
+                paymentProcessedMessage,
+                cancellationToken);
+
+            logger.LogInformation(
+                "RaiseEventAsync completed for workflow '{WorkflowInstanceId}' Activity.Current traceId={TraceId} spanId={SpanId} parentSpanId={ParentSpanId} activityId={ActivityId}",
+                paymentProcessedMessage.WorkflowInstanceId,
+                Activity.Current?.TraceId.ToString(),
+                Activity.Current?.SpanId.ToString(),
+                Activity.Current?.ParentSpanId.ToString(),
+                Activity.Current?.Id);
+
+            return Results.Ok();
+        })
+    .WithName("ProcessPaymentResult");
 
 app.MapGet("/store/{id}", async (string id, DaprClient daprClient, CancellationToken cancellationToken) =>
     {
