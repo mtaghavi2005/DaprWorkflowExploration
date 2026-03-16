@@ -7,12 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Github\Dapr\dotnet-sdk\src\Dapr.AspNetCore\Dapr.AspNetCore.csproj" />
         <ProjectReference Include="..\DaprWorkflowExploration.ServiceDefaults\DaprWorkflowExploration.ServiceDefaults.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-<!--        <PackageReference Include="Dapr.AspNetCore" Version="1.17.3" />-->
+        <PackageReference Include="Dapr.AspNetCore" Version="1.17.3" />
     </ItemGroup>
 
 </Project>
