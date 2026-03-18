@@ -198,6 +198,9 @@ publish/
 # in these scripts will be unencrypted
 PublishScripts/
 
+# Aspire local config
+.aspire/
+
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages
