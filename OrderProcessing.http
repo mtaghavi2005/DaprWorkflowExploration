@@ -1,0 +1,45 @@
+@ApiService_HostAddress = http://localhost:5497
+@StoreId = 550e8400-e29b-41d4-a516-446655440000
+
+# 1. Create a store item (product)
+POST {{ApiService_HostAddress}}/store
+Content-Type: application/json
+
+{
+  "id": "{{StoreId}}",
+  "name": "Coffee Beans",
+  "description": "Local sample record stored through Dapr state.",
+  "price": 14.99,
+  "quantity": 24
+}
+
+###
+
+# 2. Get the store item
+GET {{ApiService_HostAddress}}/store/{{StoreId}}
+Accept: application/json
+
+###
+
+# 3. Place an order (this starts the Dapr workflow)
+POST {{ApiService_HostAddress}}/order/process
+Content-Type: application/json
+
+{
+  "storeId": "{{StoreId}}",
+  "quantity": 2
+}
+
+###
+
+# 4. Check workflow status (replace {workflowInstanceId} with the ID from step 3 response)
+GET {{ApiService_HostAddress}}/order/process/{workflowInstanceId}
+Accept: application/json
+
+###
+
+# 5. List all store items
+GET {{ApiService_HostAddress}}/store
+Accept: application/json
+
+###
