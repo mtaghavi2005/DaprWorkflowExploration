@@ -45,7 +45,7 @@ This starts:
 
 ## Reproduce With The HTTP File
 
-Use [`OrderProcessing.http`](/Users/mtmac/RiderProjects/DaprWorkflowExploration/OrderProcessing.http).
+Use [`OrderProcessing.http`](./OrderProcessing.http).
 
 Suggested sequence:
 
@@ -79,18 +79,18 @@ The Aspire dashboard makes the split visible:
 
 ### Workflow trace
 First tace `POST /order/process` together with the workflow orchestration and activity spans
-![Workflow trace](docs/images/trace-order-process.png)
+![Workflow trace](./docs/images/trace-order-process.png)
 
 ### Pub/sub and RaiseEvent trace split
 Another trace shows the pub/sub flow for `payment-requests` and `payment-results`
-![Pub/sub and RaiseEvent trace split](docs/images/trace-pubsub-raiseevent.png)
+![Pub/sub and RaiseEvent trace split](./docs/images/trace-pubsub-raiseevent.png)
 
 These screenshots shows that telemetry exists, but trace continuity across the full workflow lifecycle is missing.
 
 ## Relevant Files
 
-- [`OrderProcessing.http`](/Users/mtmac/RiderProjects/DaprWorkflowExploration/OrderProcessing.http)
-- [`DaprWorkflowExploration.AppHost/AppHost.cs`](/Users/mtmac/RiderProjects/DaprWorkflowExploration/DaprWorkflowExploration.AppHost/AppHost.cs)
-- [`DaprWorkflowExploration.ApiService/Program.cs`](/Users/mtmac/RiderProjects/DaprWorkflowExploration/DaprWorkflowExploration.ApiService/Program.cs)
-- [`DaprWorkflowExploration.AccountingService/Program.cs`](/Users/mtmac/RiderProjects/DaprWorkflowExploration/DaprWorkflowExploration.AccountingService/Program.cs)
-- [`DaprWorkflowExploration.ServiceDefaults/Extensions.cs`](/Users/mtmac/RiderProjects/DaprWorkflowExploration/DaprWorkflowExploration.ServiceDefaults/Extensions.cs)
+- [`OrderProcessing.http`](./OrderProcessing.http)
+- [`DaprWorkflowExploration.AppHost/AppHost.cs`](./DaprWorkflowExploration.AppHost/AppHost.cs)
+- [`DaprWorkflowExploration.ApiService/Program.cs`](./DaprWorkflowExploration.ApiService/Program.cs)
+- [`DaprWorkflowExploration.AccountingService/Program.cs`](./DaprWorkflowExploration.AccountingService/Program.cs)
+- [`DaprWorkflowExploration.ServiceDefaults/Extensions.cs`](./DaprWorkflowExploration.ServiceDefaults/Extensions.cs)
