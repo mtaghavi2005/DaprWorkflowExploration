@@ -10,39 +10,59 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
         var logger = context.CreateReplaySafeLogger<OrderProcessingWorkflow>();
         var orderId = context.InstanceId;
 
+        // Global retry policy: retry up to 2 times on any exception with exponential backoff
+        var retryPolicy = new WorkflowRetryPolicy(
+            maxNumberOfAttempts: 3, // 1 initial attempt + 2 retries
+            firstRetryInterval: TimeSpan.FromSeconds(1),
+            backoffCoefficient: 2.0,
+            maxRetryInterval: TimeSpan.FromSeconds(60)
+        );
+
+        var retryOptions = new WorkflowTaskOptions { RetryPolicy = retryPolicy };
+
         // Notify the user that an order has come through
-        await context.CallActivityAsync(nameof(NotifyActivity),
-            new Notification($"Received order {orderId} for {order.Quantity} {order.StoreName} at ${order.TotalCost}"));
+        await context.CallActivityAsync(
+            nameof(NotifyActivity),
+            new Notification($"Received order {orderId} for {order.Quantity} {order.StoreName} at ${order.TotalCost}"),
+            retryOptions);
         LogOrderReceived(logger, orderId, order.Quantity, order.StoreName, order.TotalCost);
 
         // Determine if there is enough of the item available for purchase by checking the inventory
         var inventoryRequest = new InventoryRequest(RequestId: orderId, order.StoreId, order.Quantity);
         var result = await context.CallActivityAsync<InventoryResult>(
-            nameof(VerifyInventoryActivity), inventoryRequest);
+            nameof(VerifyInventoryActivity),
+            inventoryRequest,
+            retryOptions);
         LogCheckInventory(logger, inventoryRequest);
             
         // If there is insufficient inventory, fail and let the user know 
         if (!result.Success)
         {
             // End the workflow here since we don't have sufficient inventory
-            await context.CallActivityAsync(nameof(NotifyActivity),
-                new Notification($"Insufficient inventory for {order.StoreName}"));
+            await context.CallActivityAsync(
+                nameof(NotifyActivity),
+                new Notification($"Insufficient inventory for {order.StoreName}"),
+                retryOptions);
             LogInsufficientInventory(logger, order.StoreName);
             return new OrderResult(Processed: false, Message: $"Insufficient inventory for {order.StoreName}.");
         }
 
         if (order.TotalCost > 5000m)
         {
-            await context.CallActivityAsync(nameof(RequestApprovalActivity),
-                new ApprovalRequest(orderId, order.StoreName, order.Quantity, order.TotalCost));
+            await context.CallActivityAsync(
+                nameof(RequestApprovalActivity),
+                new ApprovalRequest(orderId, order.StoreName, order.Quantity, order.TotalCost),
+                retryOptions);
 
             var approvalResponse = await context.WaitForExternalEventAsync<ApprovalResponse>(
                 eventName: "ApprovalEvent",
                 timeout: TimeSpan.FromSeconds(30));
             if (!approvalResponse.IsApproved)
             {
-                await context.CallActivityAsync(nameof(NotifyActivity),
-                    new Notification($"Order {orderId} was not approved"));
+                await context.CallActivityAsync(
+                    nameof(NotifyActivity),
+                    new Notification($"Order {orderId} was not approved"),
+                    retryOptions);
                 LogOrderNotApproved(logger, orderId);
                 return new OrderResult(Processed: false, Message: $"Order {orderId} was not approved.");
             }
@@ -50,7 +70,10 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
 
         // There is enough inventory available so the user can purchase the item(s). Process their payment
         var processPaymentRequest = new PaymentRequest(orderId, order.StoreId, order.StoreName, order.Quantity, order.TotalCost);
-        await context.CallActivityAsync(nameof(ProcessPaymentActivity), processPaymentRequest);
+        await context.CallActivityAsync(
+            nameof(ProcessPaymentActivity),
+            processPaymentRequest,
+            retryOptions);
         LogPaymentRequested(logger, processPaymentRequest);
 
         var paymentResult = await context.WaitForExternalEventAsync<PaymentProcessedMessage>(
@@ -59,8 +82,10 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
 
         if (!paymentResult.Processed)
         {
-            await context.CallActivityAsync(nameof(NotifyActivity),
-                new Notification(paymentResult.Message));
+            await context.CallActivityAsync(
+                nameof(NotifyActivity),
+                new Notification(paymentResult.Message),
+                retryOptions);
             LogPaymentRejected(logger, orderId);
             return new OrderResult(Processed: false, Message: paymentResult.Message);
         }
@@ -69,20 +94,28 @@ internal sealed partial class OrderProcessingWorkflow : Workflow<OrderPayload, O
         {
             // Update the available inventory
             var paymentRequest = new PaymentRequest(orderId, order.StoreId, order.StoreName, order.Quantity, order.TotalCost);
-            await context.CallActivityAsync(nameof(UpdateInventoryActivity), paymentRequest);
+            await context.CallActivityAsync(
+                nameof(UpdateInventoryActivity),
+                paymentRequest,
+                retryOptions);
             LogInventoryUpdate(logger, paymentRequest);
         }
         catch (WorkflowTaskFailedException)
         {
             // Let them know their payment was processed, but there's insufficient inventory, so they're getting a refund
-            await context.CallActivityAsync(nameof(NotifyActivity),
-                new Notification($"Order {orderId} Failed! You are now getting a refund"));
+            await context.CallActivityAsync(
+                nameof(NotifyActivity),
+                new Notification($"Order {orderId} Failed! You are now getting a refund"),
+                retryOptions);
             LogRefund(logger, orderId);
             return new OrderResult(Processed: false, Message: $"Order {orderId} failed after payment and is being refunded.");
         }
 
         // Let them know their payment was processed
-        await context.CallActivityAsync(nameof(NotifyActivity), new Notification($"Order {orderId} has completed!"));
+        await context.CallActivityAsync(
+            nameof(NotifyActivity),
+            new Notification($"Order {orderId} has completed!"),
+            retryOptions);
         LogSuccessfulOrder(logger, orderId);
 
         // End the workflow with a success result
