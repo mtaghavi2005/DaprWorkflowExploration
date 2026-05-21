@@ -17,6 +17,8 @@ internal sealed partial class UpdateInventoryActivity(ILogger<UpdateInventoryAct
         // Determine if there are enough Items for purchase
         var (original, _) = await daprClient.GetStateAndETagAsync<StoreInfo>(StoreName, req.StoreId);
 
+        throw new InvalidOperationException("Simulated UpdateInventoryActivity failure for trace correlation check.");
+
         if (original is null)
         {
             LogInsufficientInventory(logger, req.RequestId);
