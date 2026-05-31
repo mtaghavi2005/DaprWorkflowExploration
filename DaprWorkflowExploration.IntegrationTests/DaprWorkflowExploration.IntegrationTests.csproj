@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.Testing" Version="13.3.5" />
+    <PackageReference Include="Dapr.Workflow" Version="1.17.9" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageReference Include="MSTest" Version="3.10.2" />
     <PackageReference Include="Reqnroll.MSTest" Version="3.3.4" />

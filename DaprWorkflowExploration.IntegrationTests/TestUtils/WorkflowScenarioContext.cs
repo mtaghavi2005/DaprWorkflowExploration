@@ -16,6 +16,16 @@ public sealed class WorkflowScenarioContext
         return App.CreateApiClient();
     }
 
+    public Uri GetApiDaprGrpcEndpoint()
+    {
+        if (App is null)
+        {
+            throw new InvalidOperationException("The Aspire AppHost has not been started.");
+        }
+
+        return App.GetApiDaprGrpcEndpoint();
+    }
+
     public async Task<Uri> GetDashboardUrlAsync(CancellationToken cancellationToken = default)
     {
         if (App is null)

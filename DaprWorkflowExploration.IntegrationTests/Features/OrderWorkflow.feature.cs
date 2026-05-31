@@ -27,8 +27,8 @@ namespace DaprWorkflowExploration.IntegrationTests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "Order workflow processing", "  The order workflow should run through the real Dapr sidecars, state store,\n  pu" +
-                "b/sub component, API service, and accounting service.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "Order workflow processing", "The order workflow should run through the real Dapr sidecars, state store,\npub/su" +
+                "b component, API service, and accounting service.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
         
 #line 1 "OrderWorkflow.feature"
 #line hidden
@@ -133,7 +133,7 @@ namespace DaprWorkflowExploration.IntegrationTests.Features
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
 #line 6
-  this.ScenarioInitialize(scenarioInfo, ruleInfo);
+this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -165,7 +165,22 @@ namespace DaprWorkflowExploration.IntegrationTests.Features
     await testRunner.ThenAsync("the JSON response from \"/order/process/{{workflowInstanceId}}\" should contain wit" +
                         "hin 120 seconds", "{\n  \"runtimeStatus\": \"Completed\",\n  \"isCompleted\": true,\n  \"processed\": true\n}", ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
+                global::Reqnroll.Table table2 = new global::Reqnroll.Table(new string[] {
+                            "Name"});
+                table2.AddRow(new string[] {
+                            "NotifyActivity"});
+                table2.AddRow(new string[] {
+                            "VerifyInventoryActivity"});
+                table2.AddRow(new string[] {
+                            "ProcessPaymentActivity"});
+                table2.AddRow(new string[] {
+                            "UpdateInventoryActivity"});
+                table2.AddRow(new string[] {
+                            "NotifyActivity"});
 #line 25
+    await testRunner.AndAsync("workflow activity history should contain in order within 60 seconds", ((string)(null)), table2, "And ");
+#line hidden
+#line 32
     await testRunner.AndAsync("store \"bdd-store\" should have 3 items remaining", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

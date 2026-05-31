@@ -28,6 +28,16 @@ public sealed class AspireAppFixture : IAsyncDisposable
         return httpClient;
     }
 
+    public Uri GetApiDaprGrpcEndpoint()
+    {
+        if (app is null)
+        {
+            throw new InvalidOperationException("The Aspire AppHost has not been started.");
+        }
+
+        return app.GetEndpoint("apiservice-dapr-cli", "grpc");
+    }
+
     public async Task<Uri> GetDashboardUrlAsync(CancellationToken cancellationToken = default)
     {
         if (app is null)

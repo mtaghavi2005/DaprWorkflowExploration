@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text;
+using Dapr.DurableTask.Protobuf;
 using DaprWorkflowExploration.IntegrationTests.TestUtils;
+using Grpc.Net.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reqnroll;
 
@@ -58,5 +60,77 @@ public sealed class WorkflowSteps(WorkflowScenarioContext context)
         }
 
         Assert.Fail($"GET '{expandedPath}' did not contain expected JSON within {timeoutSeconds} seconds. Last response: {lastResponseJson}");
+    }
+
+    [Then("workflow activity history should contain in order within {int} seconds")]
+    public async Task ThenWorkflowActivityHistoryShouldContainInOrderWithinSeconds(int timeoutSeconds, Table table)
+    {
+        var expectedStepNames = table.Rows.Select(row => row["Name"]).ToArray();
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(timeoutSeconds);
+        string[] lastStepNames = [];
+
+        Assert.IsFalse(
+            string.IsNullOrWhiteSpace(context.WorkflowInstanceId),
+            "No workflow instance ID has been captured for this scenario.");
+
+        using var channel = GrpcChannel.ForAddress(context.GetApiDaprGrpcEndpoint());
+        var workflowClient = new TaskHubSidecarService.TaskHubSidecarServiceClient(channel);
+
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            var history = await workflowClient.GetInstanceHistoryAsync(new GetInstanceHistoryRequest
+            {
+                InstanceId = context.WorkflowInstanceId
+            });
+
+            lastStepNames = ReadWorkflowActivityNames(history.Events);
+
+            if (ContainsInOrder(lastStepNames, expectedStepNames))
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        Assert.Fail(
+            $"Workflow history did not contain the expected steps in order within {timeoutSeconds} seconds. " +
+            $"Expected: {string.Join(", ", expectedStepNames)}. " +
+            $"Actual: {string.Join(", ", lastStepNames)}.");
+    }
+
+    private static string[] ReadWorkflowActivityNames(IEnumerable<HistoryEvent> historyEvents)
+    {
+        return historyEvents
+            .OrderBy(historyEvent => historyEvent.EventId)
+            .Where(historyEvent => historyEvent.EventTypeCase is HistoryEvent.EventTypeOneofCase.TaskScheduled)
+            .Select(historyEvent => historyEvent.TaskScheduled.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToArray();
+    }
+
+    private static bool ContainsInOrder(IReadOnlyList<string> actual, IReadOnlyList<string> expected)
+    {
+        if (expected.Count == 0)
+        {
+            return true;
+        }
+
+        var expectedIndex = 0;
+
+        foreach (var actualStep in actual)
+        {
+            if (string.Equals(actualStep, expected[expectedIndex], StringComparison.Ordinal))
+            {
+                expectedIndex++;
+
+                if (expectedIndex == expected.Count)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
