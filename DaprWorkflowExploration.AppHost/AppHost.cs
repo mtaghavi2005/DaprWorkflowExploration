@@ -16,8 +16,6 @@ var paymentProcessingService = builder.AddProject<Projects.DaprWorkflowExplorati
             .WithOptions(new DaprSidecarOptions
             {
                 AppId = "accountingservice",
-                AppPort = 5499,
-                DaprHttpPort = 58199,
                 ResourcesPaths = [localDaprComponentsPath]
             });
     });
@@ -30,8 +28,6 @@ var apiService = builder.AddProject<Projects.DaprWorkflowExploration_ApiService>
             .WithOptions(new DaprSidecarOptions
             {
                 AppId = "apiservice",
-                AppPort = 5497,
-                DaprHttpPort = 58197,
                 ResourcesPaths = [localDaprComponentsPath]
             })
             .WithReference(stateStore);
@@ -44,8 +40,6 @@ builder.AddProject<Projects.DaprWorkflowExploration_Web>("webfrontend")
     .WithDaprSidecar(new DaprSidecarOptions()
     {
         AppId = "webfrontend",
-        AppPort = 5498,
-        DaprHttpPort = 58198,
     })
     .WithReference(apiService)
     .WaitFor(apiService)

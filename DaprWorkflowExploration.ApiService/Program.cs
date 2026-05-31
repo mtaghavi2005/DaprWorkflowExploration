@@ -41,8 +41,17 @@ app.MapSubscribeHandler();
 
 
 app.MapPost("/order/process",
-        async ([FromBody] OrderRequest orderRequest, DaprClient daprClient, DaprWorkflowClient workflowClient, CancellationToken cancellationToken) =>
+        async ([FromBody] OrderRequest orderRequest,
+            DaprClient daprClient,
+            DaprWorkflowClient workflowClient,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
         {
+            logger.LogInformation(
+                "Received order processing request for store '{StoreId}' and quantity {Quantity}.",
+                orderRequest.StoreId,
+                orderRequest.Quantity);
+
             if (string.IsNullOrWhiteSpace(orderRequest.StoreId))
             {
                 return Results.ValidationProblem(new Dictionary<string, string[]>
@@ -60,6 +69,7 @@ app.MapPost("/order/process",
             }
 
             var storeInfo = await daprClient.GetStateAsync<StoreInfo?>(storeName, orderRequest.StoreId, cancellationToken: cancellationToken);
+            logger.LogInformation("Store lookup for '{StoreId}' completed. Found: {StoreFound}.", orderRequest.StoreId, storeInfo is not null);
 
             if (storeInfo is null)
             {
@@ -73,12 +83,14 @@ app.MapPost("/order/process",
                 TotalCost: storeInfo.Price * orderRequest.Quantity,
                 Quantity: orderRequest.Quantity);
 
+            logger.LogInformation("Scheduling order workflow for store '{StoreId}'.", storeInfo.Id);
             var workflowInstanceId = await workflowClient.ScheduleNewWorkflowAsync(
                 nameof(OrderProcessingWorkflow),
                 instanceId: null,
                 input: workflowPayload,
                 startTime: null,
                 cancellation: cancellationToken);
+            logger.LogInformation("Scheduled order workflow '{WorkflowInstanceId}'.", workflowInstanceId);
 
             return Results.Accepted(
                 $"/order/process/{workflowInstanceId}",
