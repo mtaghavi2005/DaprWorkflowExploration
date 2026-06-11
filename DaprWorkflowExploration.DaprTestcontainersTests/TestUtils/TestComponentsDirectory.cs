@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace DaprWorkflowExploration.DaprTestcontainersTests.Support;
+namespace DaprWorkflowExploration.DaprTestcontainersTests.TestUtils;
 
 internal sealed class TestComponentsDirectory : IDisposable
 {

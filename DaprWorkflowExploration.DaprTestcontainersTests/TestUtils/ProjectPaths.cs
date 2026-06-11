@@ -1,4 +1,4 @@
-namespace DaprWorkflowExploration.DaprTestcontainersTests.Support;
+namespace DaprWorkflowExploration.DaprTestcontainersTests.TestUtils;
 
 internal sealed record ProjectPaths(string ProjectDirectory, string ProjectPath, string ComponentsDirectory)
 {

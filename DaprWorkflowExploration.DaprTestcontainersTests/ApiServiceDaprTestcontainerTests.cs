@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using DaprWorkflowExploration.DaprTestcontainersTests.Support;
+using DaprWorkflowExploration.DaprTestcontainersTests.TestUtils;
 
 namespace DaprWorkflowExploration.DaprTestcontainersTests;
 

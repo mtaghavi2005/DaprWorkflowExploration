@@ -2,7 +2,7 @@ using Dapr.Testcontainers.Common.Options;
 using Dapr.Testcontainers.Containers;
 using Dapr.Testcontainers.Harnesses;
 
-namespace DaprWorkflowExploration.DaprTestcontainersTests.Support;
+namespace DaprWorkflowExploration.DaprTestcontainersTests.TestUtils;
 
 internal sealed class WorkflowTestHost : IAsyncDisposable
 {

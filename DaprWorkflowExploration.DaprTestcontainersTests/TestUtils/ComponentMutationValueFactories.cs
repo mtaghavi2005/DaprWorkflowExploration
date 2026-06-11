@@ -1,4 +1,4 @@
-namespace DaprWorkflowExploration.DaprTestcontainersTests.Support;
+namespace DaprWorkflowExploration.DaprTestcontainersTests.TestUtils;
 
 internal static class ComponentMutationValueFactories
 {

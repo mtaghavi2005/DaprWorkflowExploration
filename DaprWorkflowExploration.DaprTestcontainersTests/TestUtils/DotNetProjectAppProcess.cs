@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace DaprWorkflowExploration.DaprTestcontainersTests.Support;
+namespace DaprWorkflowExploration.DaprTestcontainersTests.TestUtils;
 
 internal sealed class DotNetProjectAppProcess : IAsyncDisposable
 {
