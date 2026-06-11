@@ -7,4 +7,9 @@ spec:
   version: v1
   metadata:
     - name: redisHost
-      value: localhost:6379
+      secretKeyRef:
+        name: REDIS_HOST
+        key: REDIS_HOST
+
+auth:
+  secretStore: envvar-secret-store
