@@ -139,6 +139,66 @@ app.MapPost("/payment-results",
         })
     .WithName("ProcessPaymentResult");
 
+app.MapPost("/payments",
+        async ([FromBody] CreatePaymentRequest paymentRequest, DaprClient daprClient, ILogger<Program> logger, CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(paymentRequest.OrderId) ||
+                string.IsNullOrWhiteSpace(paymentRequest.CustomerId) ||
+                string.IsNullOrWhiteSpace(paymentRequest.Currency) ||
+                string.IsNullOrWhiteSpace(paymentRequest.PaymentMethodToken) ||
+                paymentRequest.Amount <= 0)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["Payment"] = ["OrderId, CustomerId, Currency, PaymentMethodToken, and a positive Amount are required."]
+                });
+            }
+
+            var authorizationRequest = new PaymentAuthorizationRequested(
+                PaymentId: $"pay_{Guid.NewGuid():N}",
+                OrderId: paymentRequest.OrderId,
+                CustomerId: paymentRequest.CustomerId,
+                Amount: paymentRequest.Amount,
+                Currency: paymentRequest.Currency.ToUpperInvariant(),
+                PaymentMethodToken: paymentRequest.PaymentMethodToken);
+
+            logger.LogInformation(
+                "Publishing payment authorization request {PaymentId} for order {OrderId} Activity.Current traceId={TraceId} spanId={SpanId} parentSpanId={ParentSpanId} activityId={ActivityId}",
+                authorizationRequest.PaymentId,
+                authorizationRequest.OrderId,
+                Activity.Current?.TraceId.ToString(),
+                Activity.Current?.SpanId.ToString(),
+                Activity.Current?.ParentSpanId.ToString(),
+                Activity.Current?.Id);
+
+            await daprClient.PublishEventAsync("pubsub", "payment-authorization-requests", authorizationRequest, cancellationToken);
+
+            return Results.Accepted(
+                $"/payments/{authorizationRequest.PaymentId}",
+                new PaymentSubmittedResponse(authorizationRequest.PaymentId, authorizationRequest.OrderId, "AuthorizationRequested"));
+        })
+    .WithName("SubmitPayment");
+
+app.MapPost("/payments/authorization-results",
+        [Topic("pubsub", "payment-authorization-results")] (
+            [FromBody] PaymentAuthorizationResult result,
+            ILogger<Program> logger) =>
+        {
+            logger.LogInformation(
+                "API service received payment authorization result {PaymentId} for order {OrderId}: {Status} - {Message} Activity.Current traceId={TraceId} spanId={SpanId} parentSpanId={ParentSpanId} activityId={ActivityId}",
+                result.PaymentId,
+                result.OrderId,
+                result.Status,
+                result.Message,
+                Activity.Current?.TraceId.ToString(),
+                Activity.Current?.SpanId.ToString(),
+                Activity.Current?.ParentSpanId.ToString(),
+                Activity.Current?.Id);
+
+            return Results.Ok();
+        })
+    .WithName("HandlePaymentAuthorizationResult");
+
 app.MapGet("/store/{id}", async (string id, DaprClient daprClient, CancellationToken cancellationToken) =>
     {
         var storeInfo = await daprClient.GetStateAsync<StoreInfo?>(storeName, id, cancellationToken: cancellationToken);

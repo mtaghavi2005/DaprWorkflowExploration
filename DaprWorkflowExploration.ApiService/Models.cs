@@ -7,6 +7,10 @@ public sealed record OrderSubmissionResponse(string WorkflowInstanceId, string S
 public sealed record OrderStatusResponse(string WorkflowInstanceId, string RuntimeStatus, bool IsCompleted, bool? Processed, string? Message);
 public sealed record PaymentRequestedMessage(string WorkflowInstanceId, string StoreId, string StoreName, int Quantity, decimal TotalCost);
 public sealed record PaymentProcessedMessage(string WorkflowInstanceId, string StoreId, string StoreName, int Quantity, decimal TotalCost, bool Processed, string Message);
+public sealed record CreatePaymentRequest(string OrderId, string CustomerId, decimal Amount, string Currency, string PaymentMethodToken);
+public sealed record PaymentSubmittedResponse(string PaymentId, string OrderId, string Status);
+public sealed record PaymentAuthorizationRequested(string PaymentId, string OrderId, string CustomerId, decimal Amount, string Currency, string PaymentMethodToken);
+public sealed record PaymentAuthorizationResult(string PaymentId, string OrderId, string CustomerId, decimal Amount, string Currency, string Status, string AuthorizationCode, DateTimeOffset ProcessedAt, string Message);
 
 internal sealed record OrderPayload(string StoreId, string StoreName, decimal UnitPrice, decimal TotalCost, int Quantity = 1);
 internal sealed record InventoryRequest(string RequestId, string StoreId, int Quantity);

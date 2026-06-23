@@ -1,0 +1,12 @@
+@ApiService_HostAddress = http://localhost:5497
+
+POST {{ApiService_HostAddress}}/payments
+Content-Type: application/json
+
+{
+  "orderId": "ord-1001",
+  "customerId": "cust-123",
+  "amount": 42.50,
+  "currency": "EUR",
+  "paymentMethodToken": "tok_test_visa"
+}
